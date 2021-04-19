@@ -1,99 +1,117 @@
 import React, { FC, useState } from "react";
+import {
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  Input,
+  Button,
+} from "@chakra-ui/react";
+import * as yup from "yup";
 import { useForm } from "react-hook-form";
-import { User } from "../../interfaces/user.interface";
-import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
-const schema = Yup.object().shape({
-  username: Yup.string()
+const schema = yup.object().shape({
+  username: yup
+    .string()
     .required("What? No username?")
     .max(16, "Username cannot be longer than 16 characters"),
-  password: Yup.string().required('Without a password, "None shall pass!"'),
-  email: Yup.string().email("Please provide a valid email address (abc@xy.z)"),
+  password: yup.string().required('Without a password, "None shall pass!"'),
+  email: yup.string().email("Please provide a valid email address (abc@xy.z)"),
 });
 
-interface AuthResponse {
-  token: string;
-  user: User;
-}
+type LoginFormInputs = {
+  email: string;
+  password: string;
+  username: string;
+};
 
 const Auth: FC = () => {
-  const { handleSubmit, register, errors } = useForm<User>({
-    validationSchema: schema,
-  });
-
-  const submitForm = (data: User) => {
-    const path = isLogin ? "/auth/login" : "/auth/signup";
-    http
-      .post<User, AuthResponse>(path, data)
-      .then((res) => {
-        if (res) {
-          console.log(res, "RESPONSAT");
-          const { user, token } = res;
-          dispatch(saveToken(token));
-          dispatch(setUser(user));
-          dispatch(setAuthState(true));
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  //   const dispatch = useAppDispatch();
+  const methods = useForm<LoginFormInputs>({
+    mode: "onBlur",
+    resolver: yupResolver(schema),
+  });
+  console.log(methods);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = methods;
+
+  const onSubmit = (values: LoginFormInputs) =>
+    console.log(values, "YOUR DATA");
+
+  const path = isLogin ? "/auth/login" : "/auth/signup";
+
   return (
-    <div className="auth">
-      <div className="card">
-        <form onSubmit={handleSubmit(submitForm)}>
-          <div className="inputWrapper">
-            <input ref={register} name="username" placeholder="Username" />
-            {errors && errors.username && (
-              <p className="error">{errors.username.message}</p>
-            )}
-          </div>
-
-          <div className="inputWrapper">
-            <input
-              ref={register}
-              name="password"
-              type="password"
-              placeholder="Password"
-            />
-            {errors && errors.password && (
-              <p className="error">{errors.password.message}</p>
-            )}
-          </div>
-
-          {!isLogin && (
-            <div className="inputWrapper">
-              <input
-                ref={register}
-                name="email"
-                placeholder="Email  (optional)"
-              />
-              {errors && errors.email && (
-                <p className="error">{errors.email.message}</p>
-              )}
-            </div>
-          )}
-
-          <div className="inputWrapper">
-            <button type="submit" disabled={loading}>
-              {isLogin ? "Login" : "Create account"}
-            </button>
-          </div>
-
-          <p
-            onClick={() => setIsLogin(!isLogin)}
-            style={{ cursor: "pointer", opacity: 0.7 }}
+    <div className="card">
+      <form style={{ width: 350 }}>
+        <FormControl
+          isInvalid={!!errors?.email?.message}
+          errortext={errors?.email?.message}
+          p="4"
+          isRequired
+        >
+          <FormLabel>Username</FormLabel>
+          <Input
+            type="username"
+            placeholder="Username"
+            {...register("username")}
+          />
+          <FormErrorMessage>{errors?.username?.message}</FormErrorMessage>
+        </FormControl>
+        <FormControl
+          isInvalid={!!errors?.username?.message}
+          errortext={errors?.username?.message}
+          px="4"
+          pb="4"
+          isRequired
+        >
+          <FormLabel>Password</FormLabel>
+          <Input
+            {...register("password")}
+            type="password"
+            placeholder="Password"
+            name="password"
+          />
+          <FormErrorMessage>{errors?.password?.message}</FormErrorMessage>
+        </FormControl>
+        {!isLogin && (
+          <FormControl
+            isInvalid={!!errors?.email?.message}
+            errortext={errors?.email?.message}
+            p="4"
           >
-            {isLogin ? "No account? Create one" : "Already have an account?"}
-          </p>
-        </form>
-      </div>
+            <FormLabel>Email</FormLabel>
+            <Input
+              {...register("email")}
+              type="email"
+              placeholder="Email"
+              name="email"
+            />
+            <FormErrorMessage>{errors?.email?.message}</FormErrorMessage>
+          </FormControl>
+        )}
+        <Button
+          onClick={handleSubmit(onSubmit)}
+          p="4"
+          mx="4"
+          mt="6"
+          w="90%"
+          colorScheme="blue"
+          variant="solid"
+          disabled={!!errors.email || !!errors.password}
+        >
+          {isLogin ? "Login" : "Create account"}
+        </Button>
+        <p
+          onClick={() => setIsLogin(!isLogin)}
+          style={{ cursor: "pointer", opacity: 0.7 }}
+        >
+          {isLogin ? "No account? Create one" : "Already have an account?"}
+        </p>
+      </form>
     </div>
   );
 };
