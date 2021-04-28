@@ -10,6 +10,12 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+import { saveToken, setAuthState } from "./authSlice";
+import { User } from "../../interfaces/user.interface";
+import http from "../../services/api";
+import { useAppDispatch } from "../../store";
+import { setUser } from "./userSlice";
+
 const schema = yup.object().shape({
   username: yup
     .string()
@@ -20,14 +26,26 @@ const schema = yup.object().shape({
 });
 
 type LoginFormInputs = {
-  email: string;
-  password: string;
+  // email: string;
+  // password: string;
+  // username: string;
+
+  id?: string;
   username: string;
+  email: string;
+  password?: string;
+  diaryIds: string[] | null;
 };
+interface AuthResponse {
+  token: string;
+  user: User;
+}
 
 const Auth: FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useAppDispatch();
   const methods = useForm<LoginFormInputs>({
     mode: "onBlur",
     resolver: yupResolver(schema),
@@ -39,10 +57,26 @@ const Auth: FC = () => {
     formState: { errors },
   } = methods;
 
-  const onSubmit = (values: LoginFormInputs) =>
-    console.log(values, "YOUR DATA");
+  const onSubmit = (data: LoginFormInputs) => {
+    const path = isLogin ? "/auth/login" : "/auth/signup";
 
-  const path = isLogin ? "/auth/login" : "/auth/signup";
+    http
+      .post<User, AuthResponse>(path, data)
+      .then((res) => {
+        if (res) {
+          const { user, token } = res;
+          dispatch(saveToken(token));
+          dispatch(setUser(user));
+          dispatch(setAuthState(true));
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
     <div className="card">
@@ -101,13 +135,15 @@ const Auth: FC = () => {
           w="90%"
           colorScheme="blue"
           variant="solid"
-          disabled={!!errors.email || !!errors.password}
+          disabled={loading}
+          // disabled={!!errors.email || !!errors.password}
+          className="btn"
         >
           {isLogin ? "Login" : "Create account"}
         </Button>
         <p
           onClick={() => setIsLogin(!isLogin)}
-          style={{ cursor: "pointer", opacity: 0.7 }}
+          style={{ cursor: "pointer", opacity: 0.7, padding: "8px" }}
         >
           {isLogin ? "No account? Create one" : "Already have an account?"}
         </p>

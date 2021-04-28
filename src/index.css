@@ -20,3 +20,11 @@ code {
   width: 90%;
   margin: 0 auto;
 }
+@media screen and (max-width: 800px){
+  .card{
+    box-shadow: 2px 8px 12px rgba(0, 0, 0, 0.1);
+    padding: .5rem;
+    width: 100%;
+  
+  }
+}
