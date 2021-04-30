@@ -40,8 +40,10 @@ const signup = (schema: any, req: Request): AuthResponse | Response => {
     token,
   };
 };
+const logout = () => {};
 
 export default {
   login,
   signup,
+  logout,
 };

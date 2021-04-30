@@ -20,11 +20,14 @@ const App: FC = () => {
           {/* <Flex justify="center" h="100vh" w="100vw" align="center">
           <Center w="100%"> */}
           <Suspense fallback={<p>Loading...</p>}>
-            <Flex justify="center" h="100vh" w="100vw" align="center">
-              <Center w="100%">
-                <Auth />
-              </Center>
-            </Flex>
+            {/* <Flex justify="center" h="100vh" w="100vw" align="center"> */}
+            {/* <Center w="100%"> */}
+            <Suspense fallback={<p>Loading...</p>}>
+              {isLoggedIn ? <Home /> : <Auth />}
+            </Suspense>
+            {/* <Auth /> */}
+            {/* </Center> */}
+            {/* </Flex> */}
             {/* {isLoggedIn ? <Home /> : <Auth />} */}
           </Suspense>
           {/* <Center >

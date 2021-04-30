@@ -50,7 +50,6 @@ const Auth: FC = () => {
     mode: "onBlur",
     resolver: yupResolver(schema),
   });
-  console.log(methods);
   const {
     register,
     handleSubmit,
